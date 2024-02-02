@@ -54,19 +54,18 @@ public class ConsumerInterceptor<TKey, TValue> : DispatchProxy
             ?? throw new InvalidOperationException(typeof(IConsumer<K, V>).Name);
 
         proxy.Target = target;
-
         return proxy as IConsumer<K, V> ?? throw new InvalidOperationException(typeof(IConsumer<K, V>).Name);
     }
 
 
-    public static IConsumer<TKey, TValue> InitV2<TKey, TValue>(IConsumer<TKey, TValue> target, Options options)
+    public static IConsumer<K, V> Init<K, V>(IConsumer<K, V> target, Options options)
     {
-        var proxy = Create<IConsumer<TKey, TValue>, ConsumerInterceptor<TKey, TValue>>()
-            as ConsumerInterceptor<TKey, TValue>
-            ?? throw new InvalidOperationException(typeof(IConsumer<TKey, TValue>).Name);
+        var proxy = Create<IConsumer<K, V>, ConsumerInterceptor<K, V>>()
+            as ConsumerInterceptor<K, V>
+            ?? throw new InvalidOperationException(typeof(IConsumer<K, V>).Name);
 
         proxy.Target = target;
         proxy.Client = Client.Setup(options, ClientType.Consumer);
-        return proxy as IConsumer<TKey, TValue> ?? throw new InvalidOperationException(typeof(IConsumer<TKey, TValue>).Name);
+        return proxy as IConsumer<K, V> ?? throw new InvalidOperationException(typeof(IConsumer<K, V>).Name);
     }
 }

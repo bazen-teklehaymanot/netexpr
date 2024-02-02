@@ -17,6 +17,6 @@ public class SerializationExample
             ["field3"] = 333,
         };
 
-        await Serializer.ToProto(data, _descriptor, _structName, _messageName);
+        await ProtoSerializer.ToProto(data, _descriptor, _structName, _messageName);
     }
 }

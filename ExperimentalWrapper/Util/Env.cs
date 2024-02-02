@@ -41,15 +41,15 @@ internal class Env
             if (Directory.Exists(binaryDir))
                 Directory.Delete(binaryDir, true);
             Directory.CreateDirectory(binaryDir);
-            var compressedBinary = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+            var binZip = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? Path.Combine(BinDir, $"{Os}.zip")
                 : Path.Combine(BinDir, $"{Os}-{Arch}.zip");
 
-            if (!File.Exists(compressedBinary))
-                throw new Exception($"Missing dependency: {compressedBinary}");
+            if (!File.Exists(binZip))
+                throw new Exception($"Missing dependency: {binZip}");
 
             var binaryFilePath = Path.Combine(binaryDir, BinName);
-            ZipFile.ExtractToDirectory(compressedBinary, binaryDir);
+            ZipFile.ExtractToDirectory(binZip, binaryDir);
             return binaryFilePath;
         }
     }
@@ -97,11 +97,5 @@ internal class Env
                 _ => throw new Exception("Unsupported OS architecture")
             };
         }
-    }
-
-    private static void EnsureDependencyExists(string path)
-    {
-        if (!File.Exists(path))
-            throw new Exception($"Missing dependency: {path}");
     }
 }

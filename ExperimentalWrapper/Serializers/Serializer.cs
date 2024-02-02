@@ -44,11 +44,11 @@ file class ExecArgs
     }
 }
 
-public class Serializer
+public class ProtoSerializer
 {
     private static readonly string _bin;
 
-    static Serializer()
+    static ProtoSerializer()
     {
         _bin = Env.Bin;
     }

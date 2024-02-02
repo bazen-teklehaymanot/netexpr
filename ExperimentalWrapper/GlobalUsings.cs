@@ -8,4 +8,10 @@ global using ExperimentalWrapper.Extensions;
 global using ExperimentalWrapper.Util;
 global using CliWrap;
 global using CliWrap.Buffered;
+global using System.Text.Json.Serialization;
+global using System.Text.Json;
+global using NATS.Client;
+global using NATS.Client.JetStream;
+
+
 

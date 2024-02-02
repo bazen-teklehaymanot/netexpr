@@ -5,6 +5,7 @@ public class ProducerInterceptor<TKey, TValue> : DispatchProxy
 {
 #nullable disable
     public IProducer<TKey, TValue> Target { get; set; }
+    public Client Client { get; set; }
 #nullable restore
 
     private readonly List<string> targetMethodNames =
@@ -59,6 +60,17 @@ public class ProducerInterceptor<TKey, TValue> : DispatchProxy
 
         proxy.Target = target;
 
+        return proxy as IProducer<K, V> ?? throw new InvalidOperationException(typeof(IProducer<K, V>).Name);
+    }
+
+    public static IProducer<K, V> Init<K, V>(IProducer<K, V> target, Options options)
+    {
+        var proxy = Create<IProducer<K, V>, ProducerInterceptor<K, V>>()
+            as ProducerInterceptor<K, V>
+            ?? throw new InvalidOperationException(typeof(IProducer<K, V>).Name);
+
+        proxy.Target = target;
+        proxy.Client = Client.Setup(options, ClientType.Producer);
         return proxy as IProducer<K, V> ?? throw new InvalidOperationException(typeof(IProducer<K, V>).Name);
     }
 }

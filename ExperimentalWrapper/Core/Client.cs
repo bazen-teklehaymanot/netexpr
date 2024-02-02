@@ -1,9 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using NATS.Client;
-using NATS.Client.JetStream;
-
-namespace ExperimentalWrapper;
+﻿namespace ExperimentalWrapper;
 
 public enum ClientType
 {
@@ -53,14 +48,26 @@ public class Client
 
   public void SubscribeUpdates()
   {
+    // TODO: Implement this method
     Console.WriteLine($"Subscribing to updates for client {ClientId}");
   }
 
+  public void UpdateClientType()
+  {
+    var request = new ClientTypeUpdateRequest
+    {
+      ClientId = ClientId,
+      Type = ClientType.ToString().ToLower()
+    };
+    var message = JsonSerializer.SerializeToUtf8Bytes(request);
+    Request(Subjects.ClientTypeUpdateSubject, message, 3);
+  }
+
   internal Msg Request(
-        string subject,
-        byte[] message,
-        int timeoutRetry
-    )
+      string subject,
+      byte[] message,
+      int timeoutRetry
+  )
   {
     try
     {
@@ -90,6 +97,7 @@ public class Client
     };
     client.Register();
     client.SubscribeUpdates();
+    client.UpdateClientType();
     return client;
 
     static void DisableDefaultNatsEventHandlers(Options options)
@@ -107,38 +115,4 @@ public class Client
       options.PullStatusWarningEventHandler += (_, _) => { };
     }
   }
-}
-
-file class Subjects
-{
-  public const string ClientReconnectionUpdateSubject = "memphis.clientReconnectionUpdate";
-  public const string ClientTypeUpdateSubject = "memphis.clientTypeUpdate";
-  public const string ClientRegisterSubject = "memphis.registerClient";
-  public const string MemphisLearningSubject = "memphis.schema.learnSchema.{0}";
-  public const string MemphisRegisterSchemaSubject = "memphis.tasks.schema.registerSchema.{0}";
-  public const string MemphisClientUpdatesSubject = "memphis.updates.{0}";
-  public const string MemphisGetSchemaSubject = "memphis.schema.getSchema.{0}";
-  public const string MemphisErrorSubject = "memphis.clientErrors";
-}
-
-#nullable disable
-
-file class RegisterRequest
-{
-  [JsonPropertyName("natsConnectionId")]
-  public string NatsConnectionId { get; set; }
-  [JsonPropertyName("language")]
-  public string Language { get; set; }
-  [JsonPropertyName("version")]
-  public string Version { get; set; }
-}
-
-file class RegisterResp
-{
-  [JsonPropertyName("clientId")]
-  public int ClientId { get; set; }
-  [JsonPropertyName("accountName")]
-  public string AccountName { get; set; }
-  [JsonPropertyName("learningFactor")]
-  public int LearningFactor { get; set; }
 }
