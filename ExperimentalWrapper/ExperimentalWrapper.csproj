@@ -8,9 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.26.0-rc1" />
-    <PackageReference Include="Google.Protobuf.Tools" Version="3.26.0-rc1" />
+    <PackageReference Include="NATS.Client" Version="1.1.2" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="tools\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>tools\%(RecursiveDir)\%(Filename)%(Extension)</Link>
+      <Visible>False</Visible>
+    </None>
   </ItemGroup>
 
 </Project>

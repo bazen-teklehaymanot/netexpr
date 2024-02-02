@@ -1,16 +1,16 @@
 namespace ExperimentalWrapper.Interceptors;
 
-public class ProducerInterceptor<T> : DispatchProxy
+// public class ProducerInterceptor<T> : DispatchProxy
+public class ProducerInterceptor<TKey, TValue> : DispatchProxy
 {
 #nullable disable
-    public T Target { get; set; }
+    public IProducer<TKey, TValue> Target { get; set; }
 #nullable restore
 
     private readonly List<string> targetMethodNames =
     [
         "Produce",
-        "ProduceAsync",
-        "Flush"
+        "ProduceAsync"
     ];
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
@@ -19,44 +19,46 @@ public class ProducerInterceptor<T> : DispatchProxy
         {
             return targetMethod?.Invoke(Target, args);
         }
-        PreHook(targetMethod!, args);
+        BeforeProduce(args[0], args[1] as Message<TKey, TValue>);
         var result = targetMethod?.Invoke(Target, args);
-        PostHook(targetMethod!, args, result);
+        AfterProduce(args[0], args[1] as Message<TKey, TValue>);
         return result;
     }
 
-    private void PreHook(MethodInfo method, object?[]? args)
+    private void BeforeProduce(
+        object topic,
+        Message<TKey, TValue> message)
     {
-        Console.WriteLine("============== [PRE-HOOK] =================== ");
-        Console.WriteLine($"Method: {method?.Name}");
-        Console.WriteLine($"Arguments: {string.Join(", ", args)}");
+        Console.WriteLine("============== [BeforeProduce] =================== ");
+        Console.WriteLine($"Topic: {topic}");
+        Console.WriteLine($"Message: {message.Value}");
         Console.WriteLine("=========================================== \n");
     }
 
-    private void PostHook(MethodInfo method, object?[]? args, object? result)
+    private void AfterProduce(
+        object topic,
+        Message<TKey, TValue> message)
     {
-        Console.WriteLine("============== [POST-HOOK] =================== ");
-        Console.WriteLine($"Method: {method?.Name}");
-        Console.WriteLine($"Arguments: {string.Join(", ", args)}");
-        Console.WriteLine($"Result: {result}");
+        Console.WriteLine("============== [AfterProduce] =================== ");
+        Console.WriteLine($"Topic: {topic}");
+        Console.WriteLine($"Message: {message.Value}");
         Console.WriteLine("=========================================== \n");
     }
 
     private bool IsTargetMethod(MethodInfo? targetMethod)
     {
         return targetMethod != null &&
-        targetMethod.DeclaringType == typeof(T) &&
         targetMethodNames.Contains(targetMethod.Name);
     }
 
-    public static IProducer<TKey, TValue> Init<TKey, TValue>(IProducer<TKey, TValue> target)
+    public static IProducer<K, V> Init<K, V>(IProducer<K, V> target)
     {
-        var proxy = Create<IProducer<TKey, TValue>, ProducerInterceptor<IProducer<TKey, TValue>>>()
-            as ProducerInterceptor<IProducer<TKey, TValue>>
-            ?? throw new InvalidOperationException(typeof(IProducer<TKey, TValue>).Name);
+        var proxy = Create<IProducer<K, V>, ProducerInterceptor<K, V>>()
+            as ProducerInterceptor<K, V>
+            ?? throw new InvalidOperationException(typeof(IProducer<K, V>).Name);
 
         proxy.Target = target;
 
-        return proxy as IProducer<TKey, TValue> ?? throw new InvalidOperationException(typeof(IProducer<TKey, TValue>).Name);
+        return proxy as IProducer<K, V> ?? throw new InvalidOperationException(typeof(IProducer<K, V>).Name);
     }
 }

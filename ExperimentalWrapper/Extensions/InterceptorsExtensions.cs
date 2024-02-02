@@ -4,13 +4,13 @@ public static class InterceptorsExtensions
 {
     public static IConsumer<TKey, TValue> WithInterceptor<TKey, TValue>(this IConsumer<TKey, TValue> consumer)
     {
-        return ConsumerInterceptor<IConsumer<TKey, TValue>>
+        return ConsumerInterceptor<TKey, TValue>
         .Init(consumer);
     }
 
     public static IProducer<TKey, TValue> WithInterceptor<TKey, TValue>(this IProducer<TKey, TValue> producer)
     {
-        return ProducerInterceptor<IProducer<TKey, TValue>>
+        return ProducerInterceptor<TKey, TValue>
         .Init(producer);
     }
 
