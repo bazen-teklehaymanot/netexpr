@@ -9,7 +9,7 @@ public enum ClientType
 public class Client
 {
   public int ClientId { get; set; }
-  public string AccountName { get; set; }
+  public string? AccountName { get; set; }
   public string NatsConnectionId
   {
     get => $"{BrokerConnection.ServerInfo.ServerName}:{BrokerConnection.ConnectedId}";
@@ -22,8 +22,8 @@ public class Client
   public required IConnection BrokerConnection { get; set; }
   public required IJetStream JetStreamContext { get; set; }
   public int ProducerSchemaId { get; set; }
-  public string ProducerProtoDescptor { get; set; }
-  public Dictionary<int, string> ConsumerProtoDescriptors { get; set; }
+  public string? ProducerProtoDescriptor { get; set; }
+  public Dictionary<int, string> ConsumerProtoDescriptors { get; set; } = [];
 
   public void Register()
   {
@@ -80,6 +80,21 @@ public class Client
         throw;
       return Request(subject, message, timeoutRetry - 1);
     }
+  }
+
+  internal void SentGetSchemaRequest(string schemaId)
+  {
+    throw new NotImplementedException();
+  }
+
+  internal void SendLearningMessage(byte[] messageBytes)
+  {
+    throw new NotImplementedException();
+  }
+
+  internal void SendRegisterSchemaRequest()
+  {
+    throw new NotImplementedException();
   }
 
   public static Client Setup(

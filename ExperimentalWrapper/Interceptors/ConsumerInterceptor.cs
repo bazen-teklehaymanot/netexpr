@@ -1,4 +1,4 @@
-using NATS.Client;
+using System.Linq;
 
 namespace ExperimentalWrapper.Interceptors;
 
@@ -36,9 +36,32 @@ public class ConsumerInterceptor<TKey, TValue> : DispatchProxy
 
     private void AfterConsume(object?[]? args, ConsumeResult<TKey, TValue> result)
     {
-        Console.WriteLine("============== [AfterConsume] =================== ");
-        Console.WriteLine($"Result: {result}");
-        Console.WriteLine("================================================ \n");
+        if (result.Message is { Headers: { } })
+        {
+            for (int i = 0; i < result.Message.Headers.Count; i++)
+            {
+                var header = result.Message.Headers[i];
+                if (header.Key != "memphis_schema")
+                    continue;
+                var schemaExists = Client.ConsumerProtoDescriptors.ContainsKey((int)ToUInt64BigEndian(header.GetValueBytes()));
+                if (!schemaExists)
+                    Client.SentGetSchemaRequest(Encoding.UTF8.GetString(header.GetValueBytes()));
+
+                if (Client.ConsumerProtoDescriptors.TryGetValue((int)ToUInt64BigEndian(header.GetValueBytes()), out var descriptor))
+                {
+                    result.Message.Headers.Remove(header.Key);
+                }
+            }
+        }
+    }
+
+    private static ulong ToUInt64BigEndian(byte[] data)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(data);
+        }
+        return BitConverter.ToUInt64(data, 0);
     }
 
     private bool IsTargetMethod(MethodInfo? targetMethod)

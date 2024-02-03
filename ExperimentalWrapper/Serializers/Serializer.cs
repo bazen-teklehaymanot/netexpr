@@ -118,16 +118,16 @@ public class ProtoSerializer
         return Convert.FromBase64String(result);
     }
 
-    public static async Task<object?> DeserializeProto(
+    public static async Task<T?> DeserializeProto<T>(
         byte[] bytes,
         string descriptor,
         string structName,
         string messageName
-    )
+    ) where T : class
     {
         var res = await ProtoToJson(bytes, descriptor, structName, messageName);
         return string.IsNullOrWhiteSpace(res)
         ? null
-        : JsonSerializer.Deserialize<object>(Encoding.UTF8.GetString(Convert.FromBase64String(res)));
+        : JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(Convert.FromBase64String(res)));
     }
 }

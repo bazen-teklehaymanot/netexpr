@@ -1,6 +1,5 @@
 namespace ExperimentalWrapper.Interceptors;
 
-// public class ProducerInterceptor<T> : DispatchProxy
 public class ProducerInterceptor<TKey, TValue> : DispatchProxy
 {
 #nullable disable
@@ -28,12 +27,43 @@ public class ProducerInterceptor<TKey, TValue> : DispatchProxy
 
     private void BeforeProduce(
         object topic,
-        Message<TKey, TValue> message)
+        Message<TKey, TValue> message
+    )
     {
-        Console.WriteLine("============== [BeforeProduce] =================== ");
-        Console.WriteLine($"Topic: {topic}");
-        Console.WriteLine($"Message: {message.Value}");
-        Console.WriteLine("=========================================== \n");
+        if (string.IsNullOrWhiteSpace(Client.ProducerProtoDescriptor))
+        {
+            if (Client.LearningFactorCounter <= Client.LearningFactor)
+            {
+                var messageBytes = JsonSerializer.SerializeToUtf8Bytes(message.Value);
+                Client.SendLearningMessage(messageBytes);
+                Client.LearningFactorCounter++;
+            }
+
+            else if (!Client.LearningRequestSent &&
+                Client.LearningFactorCounter >= Client.LearningFactor &&
+                string.IsNullOrWhiteSpace(Client.ProducerProtoDescriptor)
+            )
+            {
+                Client.SendRegisterSchemaRequest();
+            }
+            return;
+        }
+
+        if (message.Value is ValueType)
+            return;
+        var protoMessage = ProtoSerializer.ToProto(message.Value as object, Client.ProducerProtoDescriptor, "", "");
+        byte[] buf = GetBytesBigEndian(Client.ProducerSchemaId);
+        message.Headers.Add("memphis_schema", buf);
+    }
+
+    private static byte[] GetBytesBigEndian(long value)
+    {
+        byte[] bytes = BitConverter.GetBytes(value);
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(bytes);
+        }
+        return bytes;
     }
 
     private void AfterProduce(
